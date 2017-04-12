@@ -22,10 +22,10 @@ public class Disk {
     private static String filename=null;
 
 
-    public static String getIP(){
+    public static String getIP(String myIP){
         try {
 
-
+            String ip=myIP.substring(0,myIP.lastIndexOf('.'));
             final File file = new File("/sdcard/RC/ip.set");
             if (!file.exists()) {
                return null;
@@ -33,7 +33,14 @@ public class Disk {
 
             InputStream is=new FileInputStream(file);
             BufferedReader buf = new BufferedReader(new InputStreamReader(is));
-            String line = buf.readLine();
+            String line;
+            int n;
+            do {
+                line = buf.readLine();
+                n = line.lastIndexOf(ip);
+                if (n==0)
+                    break;
+            }while(line!=null && line.length()>10);
             buf.close();
             is.close();
 

@@ -5,9 +5,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
 import java.net.Socket;
+import java.net.SocketException;
+import java.util.Enumeration;
 import java.util.List;
 
 
@@ -17,24 +21,57 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.util.Log;
 
+
+
+
+
+
+
+
+
+
+
+
 public class Net {
 	//private static final int MAX_UDP_DATAGRAM_LEN = 1500;
 
     public static boolean net_runing=true;
 	private static  int UDP_SERVER_PORT = 9876;
-	
+
+
+    public static String getIpAddress() {
+        try {
+            for (Enumeration en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements();) {
+                NetworkInterface intf = (NetworkInterface) en.nextElement();
+                for (Enumeration enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();) {
+                    InetAddress inetAddress = (InetAddress) enumIpAddr.nextElement();
+                    if (!inetAddress.isLoopbackAddress()&&inetAddress instanceof Inet4Address) {
+                        String ipAddress=inetAddress.getHostAddress().toString();
+                        Log.e("IP address",""+ipAddress);
+                        return ipAddress;
+                    }
+                }
+            }
+        } catch (SocketException ex) {
+            Log.e("Socket exception", ex.toString());
+        }
+        return null;
+    }
+
+
+
 public Net(int port,int timeOut){
-	UDP_SERVER_PORT=port; 
+	UDP_SERVER_PORT=port;
 }
 	public void stop(){
 
 		//udp_server_run=false;
 		//client_runing=false;
 	}
-	
+
 	static InetAddress copterAddress,myIP=null;
-	int port=0;	
-	
+	int port=0;
+
 	static int threads=0;
 
 	static Context context;
@@ -85,8 +122,12 @@ public Net(int port,int timeOut){
 				while (net_runing) {
 
 					//connect2esp();
-
-					runTCPClient(Disk.getIP());
+                    String myIP=getIpAddress();
+					String serverIPandPort=Disk.getIP(myIP);
+					if(serverIPandPort!=null && serverIPandPort.length()>10)
+						runTCPClient(serverIPandPort);
+					else
+						Log.i("ERROR","no server address!");
 					try {
 						Thread.sleep(100);
 					} catch (InterruptedException e2) {
@@ -94,11 +135,15 @@ public Net(int port,int timeOut){
 				}
             }
         };
-        thread.start();	
+        thread.start();
 	}
-	
 
-	byte buffer[]=new byte[1024]; 
+
+
+
+
+
+	byte buffer[]=new byte[1024];
 
 	final int IP=0;
 	final int PORT=1;
@@ -108,20 +153,17 @@ public Net(int port,int timeOut){
 		String s[]=ip_port.split(":");
 		Socket socket=null;
 		OutputStream out=null;
-		InputStream in=null;	
+		InputStream in=null;
 		boolean ret=true;
 		try{
 		in=null;
 		out=null;
 		 try {
 
-			// copterAddress=InetAddress.getByName("192.168.4.1");
-			// copterAddress=InetAddress.getByName("192.168.1.155");
-			 //copterAddress=InetAddress.getByName("192.168.137.38");
 			 copterAddress=InetAddress.getByName(s[IP]);
 			 UDP_SERVER_PORT=Integer.parseInt(s[PORT]);
 			 socket = new Socket(copterAddress, UDP_SERVER_PORT);
-			 socket.setSoTimeout(6000);
+			 socket.setSoTimeout(6000000);
 			 out=socket.getOutputStream();
 			 in =socket.getInputStream();
 

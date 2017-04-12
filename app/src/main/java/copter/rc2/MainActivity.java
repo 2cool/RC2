@@ -41,7 +41,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     static public Bitmap blank;
 
     static public int control_bits=0;
-    static public int command_bits=0;
+    static public int command_bits_=0;
     private static boolean secure_flug=false;
 
     public static double zoomN=0.17453292519943295769236907684886*2;//0.69813170079773183076947630739545;
@@ -259,7 +259,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             }
 
             case R.id.SET_HOR:
-                command_bits^=MPU_ACC_CALIBR;
+                command_bits_|=MPU_ACC_CALIBR;
                // Commander.button= "HOR";
                 break;
             case R.id.EXIT: {
@@ -270,23 +270,23 @@ public class MainActivity extends Activity implements SensorEventListener {
                 break;
             }
             case R.id.RESET:{
-                command_bits|=RESETING;
+                command_bits_|=RESETING;
                // Commander.button = "RST";
 
                 break;
             }
 
             case R.id.COMP_CAL:
-                command_bits|=COMPASS_CALIBR;
+                command_bits_|=COMPASS_CALIBR;
                // Commander.button="CMC";
                 break;
             case R.id.COMP_M_CAL:
-                command_bits|=COMPASS_MOTOR_CALIBR;
+                command_bits_|=COMPASS_MOTOR_CALIBR;
                // Commander.button="MCC";
                 break;
 
             case R.id.GYRRO_CAL:
-                command_bits|=MPU_GYRO_CALIBR;
+                command_bits_|=MPU_GYRO_CALIBR;
                 //Commander.button="STS";
                 break;
             case R.id.SPEED_R:
@@ -409,7 +409,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             b_start.setEnabled(false);
             commands_off_full_th=true;
          //   Commander.button = "S_S";
-            command_bits^=MOTORS_ON;
+            command_bits_|=MOTORS_ON;
             Commander.heading=(float)heading_t;
 
        }
@@ -459,7 +459,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     public void smartCtrl(View view){
       //  cb_horizont.setChecked(horizont_on=control_bits==XY_STAB);
         b_smartCTRL.setChecked(!b_smartCTRL.isChecked());
-       // command_bits^=MOTORS_ON;
+       // command_bits_^=MOTORS_ON;
         //Commander.button="SCT";
 
     }

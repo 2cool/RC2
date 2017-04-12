@@ -290,7 +290,7 @@ public class Telemetry {
 		if (buf_len==4)
 			return;
 		MainActivity.control_bits=load_int32(buf,i);
-        MainActivity.command_bits=MainActivity.control_bits;
+
 		i+=4;
 
 		Commander.copter_is_busy=(buf_len==4);

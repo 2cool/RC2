@@ -165,11 +165,16 @@ static int old_commande=0;
             return 4;
         }
         int i=0;
-        load_32int2buf(buf,MainActivity.command_bits,i);
-        if (MainActivity.command_bits!=old_commande) {
-            Log.i("COMMANDER", " " + MainActivity.command_bits);
-            old_commande=MainActivity.command_bits;
+        buf[0]=(byte)MainActivity.command_bits_;
+        buf[1]=buf[2]=buf[3]=0;
+        load_32int2buf(buf,MainActivity.command_bits_,i);
+        if (MainActivity.command_bits_!=old_commande) {
+           // Log.i("COMMANDER", " " + MainActivity.command_bits_);
+            Log.i("COMMANDER", " " + buf[0]);
+            old_commande=MainActivity.command_bits_;
         }
+        MainActivity.command_bits_=0;
+
         i+=4;
         int t=(int)(throttle *32000.0);
         load_16int2buf(buf, i, t);
