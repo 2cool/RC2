@@ -36,7 +36,7 @@ import java.util.Calendar;
 
 public class MainActivity extends Activity implements SensorEventListener {
     public final static int MOTORS_ON=1, CONTROL_FALLING=2,Z_STAB=4,XY_STAB=8,GO2HOME=16,PROGRAM=32, COMPASS_ON=64,HORIZONT_ON=128;
-    public final static int MPU_ACC_CALIBR=0x100, MPU_GYRO_CALIBR = 0x200, COMPASS_CALIBR=0x400, COMPASS_MOTOR_CALIBR=0x800, RESETING=0x1000, GIMBAL_PLUS=0x2000,GIMBAL_MINUS=0x4000;
+    public final static int MPU_ACC_CALIBR=0x100, MPU_GYRO_CALIBR = 0x200, COMPASS_CALIBR=0x400, COMPASS_MOTOR_CALIBR=0x800, RESETING=0x1000, GIMBAL_PLUS=0x2000,GIMBAL_MINUS=0x4000,SEC_MASK=0xFF000000;
 
     static public Bitmap blank;
 
@@ -223,7 +223,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     }
     @Override
     public boolean onPrepareOptionsMenu (Menu menu){
-        boolean secure=Telemetry.realThrottle==0;
+        boolean secure=true;//Telemetry.realThrottle==0;
 
         compass_cal.setEnabled(secure);
         setHor.setEnabled(secure);
@@ -263,7 +263,7 @@ public class MainActivity extends Activity implements SensorEventListener {
                // Commander.button= "HOR";
                 break;
             case R.id.EXIT: {
-                Disk.close();
+              //  Disk.close();
                 Net.net_runing = false;
                 super.finish();
                 System.exit(0);
@@ -377,12 +377,14 @@ public class MainActivity extends Activity implements SensorEventListener {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
             //Log.i("KEY","DOWN "+Integer.toString(keyCode));
-            Commander.button="CDN";
+            command_bits_|=GIMBAL_MINUS;
+         //   Commander.button="CDN";
             return true;
         }else
         if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
             //Log.i("KEY","DOWN "+Integer.toString(keyCode));
-            Commander.button="CUP";
+           // Commander.button="CUP";
+            command_bits_|=GIMBAL_PLUS;
             return true;
         }
 
@@ -459,7 +461,7 @@ public class MainActivity extends Activity implements SensorEventListener {
     public void smartCtrl(View view){
       //  cb_horizont.setChecked(horizont_on=control_bits==XY_STAB);
         b_smartCTRL.setChecked(!b_smartCTRL.isChecked());
-       // command_bits_^=MOTORS_ON;
+        command_bits_|=XY_STAB;
         //Commander.button="SCT";
 
     }
@@ -468,18 +470,19 @@ public class MainActivity extends Activity implements SensorEventListener {
     public void Prog(View view){
         b_prog.setChecked(!b_prog.isChecked());
         if (b_prog.getTextSize()!=0)
-            Commander.button="SRP";
+            command_bits_|=PROGRAM;
 
     }
 
     public void toHome(View view) {
         b_toHome.setChecked(!b_toHome.isChecked());
-        Commander.button="THM";
+        command_bits_|=GO2HOME;
   }
 
     public void altHold(View view){
         b_altHold.setChecked(!b_altHold.isChecked());
-        Commander.button="AHD";
+        command_bits_|=Z_STAB;
+       // Commander.button="AHD";
     }
 
 
@@ -499,11 +502,13 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     public void horizont_on(View view){
         cb_horizont.setChecked(!cb_horizont.isChecked());
-        Commander.button="HRT";
+        command_bits_|=HORIZONT_ON;
+       // Commander.button="HRT";
     }
     public void compas_on(View view){
         cb_compass.setChecked(!cb_compass.isChecked());
-        Commander.button="CMP";
+        command_bits_|=COMPASS_ON;
+       // Commander.button="CMP";
     }
 
 	@Override

@@ -18,7 +18,6 @@ public class Commander {
 
 	static public boolean settings=false;
 	static public float heading=0,ax=0,ay=0, throttle =0.5f,c_heading=0,headingOffset=0;
-	static public String button="";
     static public float k0 =1, k1 =1, k4 =1, k3 =1, k5 =1,k6=1,k7=1,k8=1,k9=1,k10=1;
     static public int n=0;
     static public boolean link=false;
@@ -34,7 +33,6 @@ public class Commander {
         heading=ax=ay=0;
         throttle =0.5f;
         c_heading=headingOffset=0;
-        button="";
         k0 =k1 =k4 =k3 =k5 =k6=k7=k8=k9=k10=1;
         n=0;
         link=false;
@@ -94,6 +92,7 @@ public class Commander {
         return load_16int2buf(buf,i,val);
     }
 
+    static public int upload_settings=-1;
     static public boolean program=false;
     static boolean firstProgStep=false;
 
@@ -120,7 +119,7 @@ public class Commander {
 
 
     static private int getSettings(byte buf[],int offset){
-        String msg = "S,"  +
+        String msg = ""  +
                 Integer.toString(n) + "," +
                 Float.toString(k0) + "," +
                 Float.toString(k1) + "," +
@@ -140,37 +139,42 @@ public class Commander {
         }
         return msg.length();
     }
-    static private int getButton(byte buf[]){
-        buf[0]='B';
-        buf[1]=(byte)button.charAt(0);
-        buf[2]=(byte)button.charAt(1);
-        buf[3]=(byte)button.charAt(2);
 
-        Calendar c = Calendar.getInstance();
-        String data = ""+c.getTime();
-        data=data.replace(':','_').replace(' ','_');
-
-
-
-        Disk.write(data+"\n"+"SENDED:"+button+"\n");
-        button = "";
-        return 4;
-    }
 
 static int old_commande=0;
+    static public int get32to8bMask(int v){
+        int mask=v&255;
+        mask^=((v>>8)&255);
+        mask^=((v>>16)&255);
+        mask^=((v>>24)&255);
+        return mask;
+    }
+
+    static public int get16to8bMask(int v){
+        int mask=v&255;
+        mask^=((v>>8)&255);
+
+        return mask;
+    }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     static public int get(byte buf[]){
+
         if (copter_is_busy){
 
             return 4;
         }
+        link=true;
         int i=0;
-        buf[0]=(byte)MainActivity.command_bits_;
-        buf[1]=buf[2]=buf[3]=0;
-        load_32int2buf(buf,MainActivity.command_bits_,i);
+     //   buf[0]=(byte)MainActivity.command_bits_;
+     //  buf[1]=buf[2]=buf[3]=0;
+
+
+        int mask=get32to8bMask(MainActivity.command_bits_);
+
+        load_32int2buf(buf,i,MainActivity.command_bits_);
         if (MainActivity.command_bits_!=old_commande) {
            // Log.i("COMMANDER", " " + MainActivity.command_bits_);
-            Log.i("COMMANDER", " " + buf[0]);
+            Log.i("COMMANDER", " " + MainActivity.command_bits_);
             old_commande=MainActivity.command_bits_;
         }
         MainActivity.command_bits_=0;
@@ -178,19 +182,22 @@ static int old_commande=0;
         i+=4;
         int t=(int)(throttle *32000.0);
         load_16int2buf(buf, i, t);
+        mask^=get16to8bMask(t);
         i+=2;
 
         final double RANGK=10;
 
         t=(int)((heading-c_heading)*RANGK);
         load_16int2buf(buf, i, t);
-
+        mask^=get16to8bMask(t);
+        i+=2;
         t=(int)(headingOffset*RANGK);
         load_16int2buf(buf,i,t);
+        mask^=get16to8bMask(t);
         i+=2;
 
         float tax,tay;
-        if ((MainActivity.control_bits&MainActivity.XY_STAB)==MainActivity.XY_STAB) {
+        if ((MainActivity.smartCntrF())) {
             tax = ax;
             tay = ay;
         }else{
@@ -201,15 +208,26 @@ static int old_commande=0;
 
         t = (int) (tax*RAD2GRAD * RANGK);
         load_16int2buf(buf, i, t);
+        mask^=get16to8bMask(t);
         i+=2;
         t = (int) (tay*RAD2GRAD * RANGK);
         load_16int2buf(buf, i, t);
+        mask^=get16to8bMask(t);
         i+=2;
+
+        buf[3]=(byte)mask;
+
+
         if (program){
             buf[i++]='P';
             buf[i++]='R';
             buf[i++]='G';
-            i+=getProgram(buf,i);
+            int prLen=getProgram(buf,i);
+            i+=prLen;
+            if(prLen==0) {
+                program = false;
+                i-=3;
+            }
         }
         else
         if (settings){
@@ -218,14 +236,16 @@ static int old_commande=0;
             buf[i++]='E';
             buf[i++]='T';
             i+=getSettings(buf,i);
-        }else {
-            if (button.length() == 3) {
-                buf[i++] = (byte) button.charAt(0);
-                buf[i++] = (byte) button.charAt(1);
-                buf[i++] = (byte) button.charAt(2);
-            }
-            button = "";
         }
+        else
+        if (upload_settings>=0){
+            buf[i++]='U';
+            buf[i++]='P';
+            buf[i++]='S';
+            buf[i++]=(byte)upload_settings;
+            upload_settings=-1;
+        }
+
         sended_ay=ay;
         sended_ax=ax;
 

@@ -149,8 +149,9 @@ public class Settings extends Activity {
         }
     }
     public void upload(View view){
-        Commander.button="UP"+Integer.parseInt(n.getText().toString());
-        Log.i("UPS", "button pressed "+Commander.button);
+        Commander.upload_settings=Integer.parseInt(n.getText().toString());
+     //   Commander.button="UP"+Integer.parseInt(n.getText().toString());
+     //   Log.i("UPS", "button pressed "+Commander.button);
         Telemetry.n_settings=-2;
         for (int i=0; i<10; i++) {
             try {

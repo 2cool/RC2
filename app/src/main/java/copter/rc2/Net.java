@@ -117,20 +117,20 @@ public Net(int port,int timeOut){
 		Thread thread = new Thread() {
             @Override
             public void run() {
-				Disk.close();
-				Disk.createOrOpen();
+		//		Disk.close();
+		//		Disk.createOrOpen();
 				while (net_runing) {
 
 					//connect2esp();
                     String myIP=getIpAddress();
-					String serverIPandPort=Disk.getIP(myIP);
-					if(serverIPandPort!=null && serverIPandPort.length()>10)
-						runTCPClient(serverIPandPort);
-					else
-						Log.i("ERROR","no server address!");
-					try {
-						Thread.sleep(100);
-					} catch (InterruptedException e2) {
+					String serverIPandPort[]=Disk.getIP(myIP);
+					int i=0;
+					while (serverIPandPort[i]!=null && serverIPandPort[i].length()>10) {
+
+
+						if (runTCPClient(serverIPandPort[i])==false)
+							i++;
+
 					}
 				}
             }
@@ -162,7 +162,9 @@ public Net(int port,int timeOut){
 
 			 copterAddress=InetAddress.getByName(s[IP]);
 			 UDP_SERVER_PORT=Integer.parseInt(s[PORT]);
-			 socket = new Socket(copterAddress, UDP_SERVER_PORT);
+			 try {
+				 socket = new Socket(copterAddress, UDP_SERVER_PORT);
+			 }catch(java.net.SocketException e){return false;}
 			 socket.setSoTimeout(6000000);
 			 out=socket.getOutputStream();
 			 in =socket.getInputStream();

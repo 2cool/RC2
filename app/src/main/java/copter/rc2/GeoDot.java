@@ -105,7 +105,6 @@ public class GeoDot {
         old_led_prog=led_prog;
 
         int i=off;
-        buf[i++]='P';
         int mask=(LAT_LON+DIRECTION+ALTITUDE+CAMERA_ANGLE+TIMER+SPEED_XY+SPEED_Z+LED_CONTROL);
         buf[i++]=(byte)(mask&255);
 
@@ -145,9 +144,8 @@ public class GeoDot {
 
     int getNext(byte buf[],int off) {
         int i=off;
-        buf[i]='P';
-        int masAdr=i+1;
-        i+=2;
+        int masAdr=i;
+        i++;
         int prog_mask=0;
         prog_mask&=0xff;
         buf[i++]=(byte)index;

@@ -5,11 +5,15 @@ import android.os.StrictMode;
 import android.util.Log;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.Calendar;
 
 /**
@@ -22,9 +26,62 @@ public class Disk {
     private static String filename=null;
 
 
-    public static String getIP(String myIP){
-        try {
 
+    public static void saveLatLonAlt(double lat, double lon, double alt){
+       // final File file = new File("/sdcard/RC/start_location.save");
+        try {
+            OutputStream os = new FileOutputStream("/sdcard/RC/start_location.save");
+
+            String t=Double.toString(lat)+","+Double.toString(lon)+","+Double.toString(alt);
+            os.write(t.getBytes());
+
+            os.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public static boolean loadLatLonAlt(){
+        final File file = new File("/sdcard/RC/start_location.save");
+        if (!file.exists()) {
+            return false;
+        }
+
+        InputStream is= null;
+        try {
+            is = new FileInputStream(file);
+
+            BufferedReader buf = new BufferedReader(new InputStreamReader(is));
+            String line = null;
+
+            line = buf.readLine();
+
+            if (line==null || line.length()<10)
+                return false;
+
+            String s[]=line.split(",");
+            Telemetry.autoLat=Double.parseDouble(s[0]);
+            Telemetry.autoLon=Double.parseDouble(s[1]);
+         //   Telemetry.autoLat=Double.parseDouble(s[0]);
+
+
+            is.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
+
+
+       // autoLat=0,autoLon=0;
+    }
+    public static String[] getIP(String myIP){
+        try {
+            String out[]=new String[10];
+            int outI=0;
             String ip=myIP.substring(0,myIP.lastIndexOf('.'));
             final File file = new File("/sdcard/RC/ip.set");
             if (!file.exists()) {
@@ -35,17 +92,21 @@ public class Disk {
             BufferedReader buf = new BufferedReader(new InputStreamReader(is));
             String line;
             int n;
+
             do {
                 line = buf.readLine();
-                n = line.lastIndexOf(ip);
-                if (n==0)
+                if (line==null || line.length()<10)
                     break;
-            }while(line!=null && line.length()>10);
+                n = line.lastIndexOf(ip);
+                if (n==0) {
+                    out[outI++]=line;
+                }
+            }while(true);
             buf.close();
             is.close();
 
 
-            return line;
+            return out;
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -54,7 +115,7 @@ public class Disk {
 
     }
 
-    public static int createOrOpen(){
+    public static int createOrOpen_(){
         try {
 
             {
@@ -89,7 +150,7 @@ public class Disk {
         return 0;
     }
 
-    public static int close(){
+    public static int close_(){
         try {
 
             Log.i("MSGG", "disk close");
@@ -111,7 +172,7 @@ public class Disk {
         }
         return 0;
     }
-    public static int write(String string) {
+    public static int write_(String string) {
         if (fos==null)
            // if (createOrOpen()!=0)
                 return 1;

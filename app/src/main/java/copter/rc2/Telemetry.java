@@ -7,7 +7,8 @@ import java.util.Calendar;
 public class Telemetry {
 
 	static public boolean maxTelemetry=false;
-
+	static private boolean connected=false;
+	static private boolean motors_is_on=false;
 	static private long oldMsgTimer;
 	static private int motorsONtimer=0;
 	static public String motors_on_timer="00:00";
@@ -18,7 +19,8 @@ public class Telemetry {
 	static public double lon=33.2523;
 	static public int r_accuracy_hor_pos=99,r_acuracy_ver_pos=99;//когда включаем смартконтрол мощность меняестя. (исправить)
 	static public double roll=0,pitch=0;
-	static private double autoLat=0,autoLon=0,oldlat,oldlon;
+	static public double autoLat=0,autoLon=0;
+	static private double oldlat,oldlon;
 	static public double dist=0,speed=0,v_speed=0,alt_time=0 ,speed_time=0,alt_speed;
 
 	static public double heading=0;
@@ -87,7 +89,14 @@ public class Telemetry {
 	}
 	
 
-	static public void readMessages(String msgg){
+	static public void readMessages(String msg){
+		int i;
+		if ((i=msg.indexOf("UPS",0))>=0){
+			//Log.i("UPS","read mess "+msg);
+			parse_settings(msg, i+3);
+		//	i=msg.lastIndexOf(",",i);
+		}
+		//
 
 
 
@@ -210,7 +219,7 @@ public class Telemetry {
 
 	static private void parse_settings(String str, int b){
        // Log.i("UPS","parse: "+str.substring(b));
-		String v[]=str.substring(b+1).split(",");
+		String v[]=str.substring(b).split(",");
 		int n=Integer.parseInt(v[0]);
 		if (n<0){
 			n_settings=-1;
@@ -299,18 +308,41 @@ public class Telemetry {
 		}
 		realThrottle  = load_int16(buf,i);
 		i+=2;
+		realThrottle=(realThrottle-1000)*0.001f;
 
-		lat=load_int32(buf,i);
-		i+=4;
-		lon=load_int32(buf,i);
-		i+=4;
 
-	    if (MainActivity.control_bits>=MainActivity.MOTORS_ON){
-				//вічисляем растояние до старта
-			if (autoLat==0 || autoLon==0){
+		int ilat=load_int32(buf,i);
+		i+=4;
+		lat=0.0000001*(double)ilat;
+		int ilon=load_int32(buf,i);
+		i+=4;
+		lon=0.0000001*(double)ilon;
+		//---------------------------
+		if (connected == false) {
+			if (MainActivity.motorsOnF()){
+				Disk.loadLatLonAlt();
+				oldlat=lat;
+				oldlon=lon;
+			}
+			connected = true;
+		}else
+			if (MainActivity.motorsOnF() && motors_is_on != (MainActivity.motorsOnF()) ){
 				autoLat=oldlat=lat;
 				autoLon=oldlon=lon;
+				Disk.saveLatLonAlt(lat,lon,0);
 			}
+			if (motors_is_on!=MainActivity.motorsOnF())
+				motors_is_on=MainActivity.motorsOnF();
+
+
+
+
+
+
+
+
+	    if (MainActivity.motorsOnF()){
+				//вічисляем растояние до старта
 			dist=(autoLat==0 || autoLon==0)?0:dist(autoLat,autoLon,lat,lon);
 			double dDist=dist(oldlat,oldlon,lat,lon);
 			oldlat=lat;
@@ -325,6 +357,7 @@ public class Telemetry {
 		_alt =load_int16(buf,i);
 		i+=2;
 		_alt*=0.1;
+
 		if (old_alt1==-100000)
 			old_alt1=_alt;
 			double dalt=_alt-old_alt1;
@@ -350,6 +383,8 @@ public class Telemetry {
 		heading=1.4173228346456692913385826771654*(float)buf[i++];
 
 		//тут читаем сообщения если они кому нужни так как у нас все данніе риходят и муд
+		if (buf_len-i>5)
+			readMessages(new String(buf,i,buf_len-i));
 
 		float z = (float) Math.sqrt( (1 - pitch * pitch*GRAD2RAD*GRAD2RAD ) * (1 - roll * roll * GRAD2RAD*GRAD2RAD) );
 		//ap_throttle=realThrottle*z;
