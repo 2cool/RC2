@@ -193,7 +193,7 @@ public Net(int port,int timeOut){
 
 
 				}catch(java.net.SocketTimeoutException e){
-                   // socket.setSoTimeout(5000);
+                    socket.setSoTimeout(5000);
 					Log.i("UDP","SocketTimeoutException");
 					//if (++timeOutErrors>=1){
 						//Log.i("UDP","SocketTimeoutException & reboot");
