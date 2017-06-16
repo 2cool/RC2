@@ -272,6 +272,7 @@ public class MainActivity extends Activity implements SensorEventListener {
             case R.id.RESET:{
                 command_bits_|=RESETING;
                // Commander.button = "RST";
+                Commander.exit_main=true;
 
                 break;
             }

@@ -95,6 +95,7 @@ public class Commander {
     static public int upload_settings=-1;
     static public boolean program=false;
     static boolean firstProgStep=false;
+    static boolean exit_main=false;
 
     static public void startLoadingProgram(){
         if (program==false){
@@ -217,7 +218,13 @@ static int old_commande=0;
 
         buf[3]=(byte)mask;
 
-
+        if (exit_main){
+            exit_main = false;
+            buf[i++]='R';
+            buf[i++]='S';
+            buf[i++]='T';
+            i+=getSettings(buf,i);
+        }else
         if (program){
             buf[i++]='P';
             buf[i++]='R';
