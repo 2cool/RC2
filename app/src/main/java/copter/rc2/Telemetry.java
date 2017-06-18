@@ -337,7 +337,20 @@ public class Telemetry {
 
 
 
-
+		long timems = System.currentTimeMillis();
+		if ((timems-oldTimeMS)>=1000) {
+			if (oldTimeMS == 0) {
+				oldTimeMS = System.currentTimeMillis();
+			}else {
+				if (MainActivity.motorsOnF()) {
+					motorsONtimer += (int) ((timems - oldTimeMS) / 1000);
+					int minutes=(int)Math.ceil(motorsONtimer/60);
+					int seconds=motorsONtimer-minutes*60;
+					motors_on_timer=Integer.toString(minutes)+":"+((seconds<10)?"0":"")+Integer.toString(seconds);
+				}
+				oldTimeMS = timems;
+			}
+		}
 
 
 
@@ -351,6 +364,23 @@ public class Telemetry {
 			double dt=0.001*(double)(t-speed_time);
 			speed_time=t;
 			speed+=(dDist/dt-speed)*0.05;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 		}
 		r_accuracy_hor_pos = buf[i++];
 		r_acuracy_ver_pos = buf[i++];
