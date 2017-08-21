@@ -147,7 +147,15 @@ public Net(int port,int timeOut){
 
 	final int IP=0;
 	final int PORT=1;
+	boolean dataloaded=false;
 	public boolean runTCPClient(String ip_port){
+
+		if (dataloaded==false) {
+			dataloaded=true;
+			Disk.loadLatLonAlt("/sdcard/RC/lostCon_location.save", true);
+		}
+
+
 		if (ip_port==null)
 			return false;
 		String s[]=ip_port.split(":");
@@ -165,7 +173,7 @@ public Net(int port,int timeOut){
 			 try {
 				 socket = new Socket(copterAddress, UDP_SERVER_PORT);
 			 }catch(java.net.SocketException e){return false;}
-			 socket.setSoTimeout(6000000);
+			 socket.setSoTimeout(3000);
 			 out=socket.getOutputStream();
 			 in =socket.getInputStream();
 
@@ -202,7 +210,14 @@ public Net(int port,int timeOut){
 							socket.shutdownOutput();
 							socket.close();
 							ret=false;
+
+
+
+
+							if (Commander.link)
+								Disk.saveLatLonAlt("/sdcard/RC/lostCon_location.save",Telemetry.lat,Telemetry.lon,Telemetry._alt);
 							Commander.link=false;
+
 						}
 						socket=null;
 						break;                 
@@ -221,6 +236,8 @@ public Net(int port,int timeOut){
            } 
 		 
 		 finally {
+			 if (Commander.link)
+			 	Disk.saveLatLonAlt("/sdcard/RC/lostCon_location.save",Telemetry.lat,Telemetry.lon,Telemetry._alt);
 			 Commander.link=false;
 			 if (MainActivity.drawView!=null)
 					MainActivity.drawView.postInvalidate();

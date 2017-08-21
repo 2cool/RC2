@@ -336,12 +336,12 @@ public class Programmer {
         if (progSize==0)
             return 0;
         progIndex=1;
-        int len=dot[0].getFirst(buf,off);
+        off=dot[0].getFirst(buf,off);
 
-        buf[off+len]=(byte)(0xff&progSize);
-        buf[off+len+1]=(byte)(0xff&(progSize>>8));
+        buf[off]=(byte)(0xff&progSize);
+        buf[off+1]=(byte)(0xff&(progSize>>8));
 
-        return len+2;
+        return off+2;
 
 
     }
@@ -349,9 +349,9 @@ public class Programmer {
 
         if (progIndex>=progSize)
             return 0;
-        int len=dot[progIndex].getNext(buf,off);
+       off=dot[progIndex].getNext(buf,off);
         progIndex++;
-        return len;
+        return off;
 
     }
 

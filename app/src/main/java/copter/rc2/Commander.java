@@ -77,8 +77,8 @@ public class Commander {
     static byte load_32int2buf(byte buf[], int i, int val){
         buf[i+0]=(byte)(val&255);
         buf[i+1]=(byte)(val>>8);
-        buf[i+3]=(byte)(val>>16);
-        buf[i+4]=(byte)(val>>24);
+        buf[i+2]=(byte)(val>>16);
+        buf[i+3]=(byte)(val>>24);
         return (byte)(buf[i]^buf[i+1]);
     }
 
@@ -178,6 +178,13 @@ static int old_commande=0;
             Log.i("COMMANDER", " " + MainActivity.command_bits_);
             old_commande=MainActivity.command_bits_;
         }
+        if ((MainActivity.command_bits_ & MainActivity.Z_STAB) !=0) {
+            if ((MainActivity.control_bits & MainActivity.Z_STAB) != 0)
+                throttle=Telemetry.corectThrottle();
+            else
+                throttle = 0.5f;
+        }
+
         MainActivity.command_bits_=0;
 
         i+=4;

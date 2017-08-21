@@ -262,10 +262,10 @@
         android:layout_height="wrap_content"
         android:text="Set"
         android:id="@+id/button"
-        android:layout_alignParentTop="true"
+        android:onClick="sendMessage"
+        android:layout_alignTop="@+id/textView9"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:onClick="sendMessage"/>
+        android:layout_alignParentEnd="true" />
 
     <Button
 
@@ -274,18 +274,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/exit_button2"
         android:onClick="exit_set"
-        android:layout_above="@+id/textView7"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="UPLOAD"
-        android:id="@+id/b_upload"
-        android:onClick="upload"
-
-        android:layout_alignTop="@+id/textView3"
+        android:layout_alignBottom="@+id/textViewSet"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
 

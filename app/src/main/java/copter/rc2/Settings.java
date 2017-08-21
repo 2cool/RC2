@@ -22,11 +22,11 @@ public class Settings extends Activity {
             {"P_R_rateKP","P_R_rateKI","P_R_rateIMAX","P_R_stabKP","YAW_rate_KP","YAW_rateE_KI","YAW_rate_IMAX","YAW_stab_KP","MAX_ANGLE","MIN_ROT_THR","balance"},
             {"STAB_KP","SPEED_KP","SPEED_I","SPEED_imax","MAX_SPEED_P","MAX_SPEED_M","CF_SPEED","CF_DIST",_null,_null,"Z stab"},
             {"STAB_KP","SPEED_KP","SPEED_I","SPEED_imax","max_speed","KF_SPEED","KF_DIST",_null,_null,_null,"XY stab"},
-            {"high_to_lift_2_home","max_throttle","min_throttle","sens_xy","sens_z","min_hight","debug_n",_null,_null,_null,"secur"},
+            {"high_to_lift_2_home","max_throttle","min_throttle","sens_xy","sens_z","min_hight","debug_n","camera_mod",_null,_null,"secur"},
             {"cS",_null,_null,_null,_null,_null,_null,_null,_null,_null,"mpu"},
             {"m power on",_null,_null,_null,_null,_null,_null,_null,_null,_null,"compas"}
     };
-    Button b_send;
+
     EditText k0, k1, k4, k3, k5, k6, k7,k8,k9,k10,n;
     Button set;
 
@@ -46,7 +46,7 @@ public class Settings extends Activity {
             ((TextView) findViewById(R.id.textView10)).setText(a[num][9]);
             ((TextView) findViewById(R.id.textViewSet)).setText(a[num][10]);
             set.setEnabled(true);
-            b_send.setEnabled(true);
+
 
         }else{
             ((TextView) findViewById(R.id.textView1)).setText(_null);
@@ -61,7 +61,7 @@ public class Settings extends Activity {
             ((TextView) findViewById(R.id.textView10)).setText(_null);
             ((TextView) findViewById(R.id.textViewSet)).setText(_null);
             set.setEnabled(false);
-            b_send.setEnabled(false);
+
         }
 
     }
@@ -70,16 +70,36 @@ public class Settings extends Activity {
     protected void setEditText(int num,boolean flag){
         String sn=""+num;
         SharedPreferences settings = getPreferences(MODE_PRIVATE);
-        k0.setText(Float.toString(settings.getFloat("k0" + sn, 0)));
-        k1.setText(Float.toString(settings.getFloat("k1" + sn, 0)));
-        k3.setText(Float.toString(settings.getFloat("k3" + sn, 0)));
-        k4.setText(Float.toString(settings.getFloat("k4" + sn, 0)));
-        k5.setText(Float.toString(settings.getFloat("k5" + sn, 0)));
-        k6.setText(Float.toString(settings.getFloat("k6" + sn, 0)));
-        k7.setText(Float.toString(settings.getFloat("k7" + sn, 0)));
-        k8.setText(Float.toString(settings.getFloat("k8" + sn, 0)));
-        k9.setText(Float.toString(settings.getFloat("k9" + sn, 0)));
-        k10.setText(Float.toString(settings.getFloat("k10" + sn, 0)));
+        Commander.upload_settings=Integer.parseInt(n.getText().toString());
+        //   Commander.button="UP"+Integer.parseInt(n.getText().toString());
+        //   Log.i("UPS", "button pressed "+Commander.button);
+        Telemetry.n_settings=-2;
+        for (int i=0; i<3; i++) {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                Log.i("UPS", "sleep Error");
+                e.printStackTrace();
+            }
+            if (Telemetry.n_settings!= -2){
+                Log.i("UPS", "!=-2");
+                if ( Telemetry.n_settings == Integer.parseInt(n.getText().toString()) ){
+                    Log.i("UPS", "load set");
+                    k0.setText(Float.toString(Telemetry.settings[0]));
+                    k1.setText(Float.toString(Telemetry.settings[1]));
+                    k3.setText(Float.toString(Telemetry.settings[2]));
+                    k4.setText(Float.toString(Telemetry.settings[3]));
+                    k5.setText(Float.toString(Telemetry.settings[4]));
+                    k6.setText(Float.toString(Telemetry.settings[5]));
+                    k7.setText(Float.toString(Telemetry.settings[6]));
+                    k8.setText(Float.toString(Telemetry.settings[7]));
+                    k9.setText(Float.toString(Telemetry.settings[8]));
+                    k10.setText(Float.toString(Telemetry.settings[9]));
+
+                }
+                break;
+            }
+        }
 
 
 
@@ -112,7 +132,7 @@ public class Settings extends Activity {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
             setContentView(settubgs);
             set = (Button) findViewById(R.id.button);
-            b_send=(Button)findViewById(R.id.b_upload);
+
             k0 = (EditText) findViewById(R.id.e_k0);
             k1 = (EditText) findViewById(R.id.e_k1);
             k4 = (EditText) findViewById(R.id.e_k4);
@@ -146,38 +166,6 @@ public class Settings extends Activity {
             });
         }catch (Exception e){
             Log.i("ERROR","settings "+e.toString());
-        }
-    }
-    public void upload(View view){
-        Commander.upload_settings=Integer.parseInt(n.getText().toString());
-     //   Commander.button="UP"+Integer.parseInt(n.getText().toString());
-     //   Log.i("UPS", "button pressed "+Commander.button);
-        Telemetry.n_settings=-2;
-        for (int i=0; i<10; i++) {
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException e) {
-                Log.i("UPS", "sleep Error");
-                e.printStackTrace();
-            }
-            if (Telemetry.n_settings!= -2){
-                Log.i("UPS", "!=-2");
-                if ( Telemetry.n_settings == Integer.parseInt(n.getText().toString()) ){
-                    Log.i("UPS", "load set");
-                    k0.setText(Float.toString(Telemetry.settings[0]));
-                    k1.setText(Float.toString(Telemetry.settings[1]));
-                    k3.setText(Float.toString(Telemetry.settings[2]));
-                    k4.setText(Float.toString(Telemetry.settings[3]));
-                    k5.setText(Float.toString(Telemetry.settings[4]));
-                    k6.setText(Float.toString(Telemetry.settings[5]));
-                    k7.setText(Float.toString(Telemetry.settings[6]));
-                    k8.setText(Float.toString(Telemetry.settings[7]));
-                    k9.setText(Float.toString(Telemetry.settings[8]));
-                    k10.setText(Float.toString(Telemetry.settings[9]));
-
-                }
-                break;
-            }
         }
     }
 

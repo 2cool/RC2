@@ -142,12 +142,12 @@ public class GeoDot {
 
     }
 
-    int getNext(byte buf[],int off) {
-        int i=off;
+    int getNext(byte buf[],int i) {
+
         int masAdr=i;
         i++;
         int prog_mask=0;
-        prog_mask&=0xff;
+
         buf[i++]=(byte)index;
         if (oldTimer!=timer){
             oldTimer=timer;

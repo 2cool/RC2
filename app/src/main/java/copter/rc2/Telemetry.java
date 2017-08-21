@@ -77,13 +77,13 @@ public class Telemetry {
 
 
 
-	static public void corectThrottle(){
+	static public float corectThrottle(){
 
 		if (ap_throttle < 0.5)
 			ap_throttle = 0.5;
 		if (ap_throttle > 0.7)
 			ap_throttle = 0.7;
-		Commander.throttle =(float)ap_throttle;//*z;
+		return (float)ap_throttle;//*z;
 
 
 	}
@@ -296,16 +296,17 @@ public class Telemetry {
 	static public void bufferReader_(byte buf[],int buf_len){
 
 		int i=0;
-		if (buf_len==4)
+		Commander.copter_is_busy=(buf_len<=4);
+		if (Commander.copter_is_busy){
 			return;
+		}
+		//if (buf_len<=4)
+		//	return;
 		MainActivity.control_bits=load_int32(buf,i);
 
 		i+=4;
 
-		Commander.copter_is_busy=(buf_len==4);
-		if (Commander.copter_is_busy){
-			return;
-		}
+
 		realThrottle  = load_int16(buf,i);
 		i+=2;
 		realThrottle=(realThrottle-1000)*0.001f;
@@ -320,7 +321,7 @@ public class Telemetry {
 		//---------------------------
 		if (connected == false) {
 			if (MainActivity.motorsOnF()){
-				Disk.loadLatLonAlt();
+				Disk.loadLatLonAlt("/sdcard/RC/start_location.save",false);
 				oldlat=lat;
 				oldlon=lon;
 			}
@@ -329,7 +330,7 @@ public class Telemetry {
 			if (MainActivity.motorsOnF() && motors_is_on != (MainActivity.motorsOnF()) ){
 				autoLat=oldlat=lat;
 				autoLon=oldlon=lon;
-				Disk.saveLatLonAlt(lat,lon,0);
+				Disk.saveLatLonAlt("/sdcard/RC/start_location.save",lat,lon,0);
 			}
 			if (motors_is_on!=MainActivity.motorsOnF())
 				motors_is_on=MainActivity.motorsOnF();

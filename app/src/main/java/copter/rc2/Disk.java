@@ -27,10 +27,10 @@ public class Disk {
 
 
 
-    public static void saveLatLonAlt(double lat, double lon, double alt){
+    public static void saveLatLonAlt(String fname,double lat, double lon, double alt){
        // final File file = new File("/sdcard/RC/start_location.save");
         try {
-            OutputStream os = new FileOutputStream("/sdcard/RC/start_location.save");
+            OutputStream os = new FileOutputStream(fname);//"/sdcard/RC/start_location.save");
 
             String t=Double.toString(lat)+","+Double.toString(lon)+","+Double.toString(alt);
             os.write(t.getBytes());
@@ -42,8 +42,8 @@ public class Disk {
     }
 
 
-    public static boolean loadLatLonAlt(){
-        final File file = new File("/sdcard/RC/start_location.save");
+    public static boolean loadLatLonAlt(String fname,boolean to_telemetry){
+        final File file = new File(fname);//"/sdcard/RC/start_location.save");
         if (!file.exists()) {
             return false;
         }
@@ -61,10 +61,15 @@ public class Disk {
                 return false;
 
             String s[]=line.split(",");
-            Telemetry.autoLat=Double.parseDouble(s[0]);
-            Telemetry.autoLon=Double.parseDouble(s[1]);
-         //   Telemetry.autoLat=Double.parseDouble(s[0]);
-
+            if (to_telemetry){
+                Telemetry.lat=Double.parseDouble(s[0]);
+                Telemetry.lon=Double.parseDouble(s[1]);
+                Telemetry._alt=(float)Double.parseDouble(s[2]);
+            }else {
+                Telemetry.autoLat = Double.parseDouble(s[0]);
+                Telemetry.autoLon = Double.parseDouble(s[1]);
+                //   Telemetry.autoLat=Double.parseDouble(s[0]);
+            }
 
             is.close();
 
