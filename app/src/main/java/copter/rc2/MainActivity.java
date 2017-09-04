@@ -2,6 +2,7 @@ package copter.rc2;
 
 
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -16,6 +17,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 
 import android.util.Log;
@@ -40,6 +42,27 @@ import java.util.Calendar;
 public class MainActivity extends Activity implements SensorEventListener {
     public final static int MOTORS_ON=1, CONTROL_FALLING=2,Z_STAB=4,XY_STAB=8,GO2HOME=16,PROGRAM=32, COMPASS_ON=64,HORIZONT_ON=128;
     public final static int MPU_ACC_CALIBR=0x100, MPU_GYRO_CALIBR = 0x200, COMPASS_CALIBR=0x400, COMPASS_MOTOR_CALIBR=0x800, RESETING=0x1000, GIMBAL_PLUS=0x2000,GIMBAL_MINUS=0x4000,SEC_MASK=0xFF000000;
+
+
+
+
+
+    protected boolean shouldAskPermissions() {
+        return (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP_MR1);
+    }
+
+    @TargetApi(23)
+    protected void askPermissions() {
+        String[] permissions = {
+                "android.permission.READ_EXTERNAL_STORAGE",
+                "android.permission.WRITE_EXTERNAL_STORAGE"
+        };
+        int requestCode = 200;
+        requestPermissions(permissions, requestCode);
+    }
+
+
+
 
     static public Bitmap blank;
 
@@ -83,7 +106,7 @@ public class MainActivity extends Activity implements SensorEventListener {
 
     }
 
-
+/*
 
 
     private void setWifiTetheringEnabled(boolean enable) {
@@ -101,7 +124,7 @@ public class MainActivity extends Activity implements SensorEventListener {
         }
     }
 
-
+*/
 
 
 
@@ -121,7 +144,9 @@ public class MainActivity extends Activity implements SensorEventListener {
         super.onCreate(savedInstanceState);
 
 
-
+       if (shouldAskPermissions()) {
+            askPermissions();
+        }
 
         blank= BitmapFactory.decodeStream(this.getResources().openRawResource(R.raw.blank));
 
@@ -135,6 +160,8 @@ public class MainActivity extends Activity implements SensorEventListener {
         DrawMap.screenP.x=settings.getInt("screenPX",0);
         DrawMap.screenP.y=settings.getInt("screenPY",0);
 
+        Telemetry.logThread_f=true;
+        Telemetry.startlogThread();
         Net.net_runing=true;
 
        // setWifiTetheringEnabled(true);
@@ -266,8 +293,20 @@ public class MainActivity extends Activity implements SensorEventListener {
                // Commander.button= "HOR";
                 break;
             case R.id.EXIT: {
-              //  Disk.close();
                 Net.net_runing = false;
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
+                Telemetry.logThread_f=false;
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }
+                Disk.close_();
+
                 super.finish();
                 System.exit(0);
                 break;

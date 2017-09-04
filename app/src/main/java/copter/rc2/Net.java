@@ -37,7 +37,7 @@ public class Net {
 
     public static boolean net_runing=true;
 	private static  int UDP_SERVER_PORT = 9876;
-
+	static private boolean ip_OK=false;
 
     public static String getIpAddress() {
         try {
@@ -128,8 +128,12 @@ public Net(int port,int timeOut){
 					while (serverIPandPort[i]!=null && serverIPandPort[i].length()>10) {
 
 
-						if (runTCPClient(serverIPandPort[i])==false)
-							i++;
+						if (runTCPClient(serverIPandPort[i])==true)
+							if (ip_OK==false) {
+								i++;
+								if (i>=serverIPandPort.length)
+									i=0;
+							}
 
 					}
 				}
@@ -143,7 +147,7 @@ public Net(int port,int timeOut){
 
 
 
-	byte buffer[]=new byte[1024];
+	byte buffer[]=new byte[16384];
 
 	final int IP=0;
 	final int PORT=1;
@@ -170,9 +174,14 @@ public Net(int port,int timeOut){
 
 			 copterAddress=InetAddress.getByName(s[IP]);
 			 UDP_SERVER_PORT=Integer.parseInt(s[PORT]);
-			 try {
-				 socket = new Socket(copterAddress, UDP_SERVER_PORT);
-			 }catch(java.net.SocketException e){return false;}
+             do {
+                 try {
+                     socket = new Socket(copterAddress, UDP_SERVER_PORT);
+                     break;
+                 } catch (java.net.SocketException e) {
+                    //socket.close();
+                 }
+             }while(true);
 			 socket.setSoTimeout(3000);
 			 out=socket.getOutputStream();
 			 in =socket.getInputStream();
@@ -197,6 +206,7 @@ public Net(int port,int timeOut){
 					len=in.read(buffer);
 				//	Log.i("UDP","<-"+buffer);
 					Commander.link=true;
+					ip_OK=true;
 					Telemetry.bufferReader_(buffer,len);
 
 
@@ -209,7 +219,7 @@ public Net(int port,int timeOut){
 							socket.shutdownInput();
 							socket.shutdownOutput();
 							socket.close();
-							ret=false;
+							ret=true;
 
 
 
@@ -231,7 +241,7 @@ public Net(int port,int timeOut){
             	if (e.getMessage().indexOf("ECONNREFUSED")!=-1)
             		ret= true;
             	else
-            		ret= false;
+            		ret= true;
             	
            } 
 		 
@@ -241,26 +251,13 @@ public Net(int port,int timeOut){
 			 Commander.link=false;
 			 if (MainActivity.drawView!=null)
 					MainActivity.drawView.postInvalidate();
-			 Log.i("UDP","TCP_CLIENT KILLED!"); 
+			 Log.i("UDP","TCP_CLIENT KILLED!");
 
-			if (socket != null) {
-				Log.i("UDP", "close");
-				try {
-					if (socket.isClosed() == false && socket.isConnected()){
-						socket.shutdownInput();
-						socket.shutdownOutput();
-						socket.close();
-					}
-					socket=null;
-				} catch (IOException e) {
-					ret=false;
-					Log.i("UDP", e.getMessage());
-				}
-			}
+
 		}
 		}catch (Exception e){
 			Log.i("UDP", "TCP CLIENT EXCEPTION "+e.getMessage());
 		}
-		return ret;
+		return true;
 	}
 }

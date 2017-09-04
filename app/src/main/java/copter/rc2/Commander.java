@@ -22,6 +22,7 @@ public class Commander {
     static public int n=0;
     static public boolean link=false;
 
+
     static public float sended_ax=0,sended_ay=0;
     static public byte buf[];
     static public boolean copter_is_busy=true;

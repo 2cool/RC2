@@ -19,11 +19,119 @@ import java.util.Calendar;
 /**
  * Created by 2cool on 06.06.2015.
  */
+
+
+
+
+
+
+
+
+
+
+
+
+
 public class Disk {
 
     private static FileOutputStream fos=null;
     private static File myFile=null;
     private static String filename=null;
+
+    /* Checks if external storage is available for read and write */
+    public boolean isExternalStorageWritable() {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
+            return true;
+        }
+        return false;
+    }
+
+    /* Checks if external storage is available to at least read */
+    public boolean isExternalStorageReadable() {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state) ||
+                Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+            return true;
+        }
+        return false;
+    }
+
+    //-------------------------------------------
+    public static String getLOG_FNAME(){
+
+        int cnt=999;
+        try {
+            InputStream is = new FileInputStream("/sdcard/RC/counter.txt");
+            BufferedReader buf = new BufferedReader(new InputStreamReader(is));
+            String s="";
+            s = buf.readLine();
+            cnt=Integer.parseInt(s);
+
+            is.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try{
+            File file;
+
+            file = new File(Environment.getExternalStorageDirectory(),"RC/counter.txt");
+            file.createNewFile();
+            //  boolean deleted = file.delete();
+
+            OutputStream os = new FileOutputStream("/sdcard/RC/counter.txt");
+
+
+            String t=Integer.toString(cnt+1);
+            os.write(t.getBytes());
+            os.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "RC/"+Integer.toString(cnt)+".log";
+    }
+
+//------------------------------------------
+    public static int write2Log(byte b[],int offset,int len){
+
+
+        try {
+
+            {
+                final File file = new File("/sdcard/RC");
+                if (!file.exists()) {
+                    if (file.mkdir()) {
+                        //System.out.println("Directory is created!");
+                    } else {
+                        System.out.println("Failed to create directory!");
+                    }
+                }
+            }
+
+
+
+            if (myFile==null) {
+                filename=getLOG_FNAME();
+                myFile = new File(Environment.getExternalStorageDirectory(), filename);
+                if (!myFile.exists())
+                    myFile.createNewFile();
+                fos = new FileOutputStream(myFile , false);
+
+            }
+
+            fos.write(b,offset,len);
+            fos.flush();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 1;
+        }
+
+        return 0;
+    }
 
 
 
@@ -164,7 +272,7 @@ public class Disk {
             if (fos!=null) {
                 fos.flush();
                 fos.close();
-                if (myFile!=null && myFile.exists() && (Telemetry.motorsWasOn==false ||  myFile.length()==0)){
+                if (myFile!=null && myFile.exists() &&  myFile.length()==0){
                     myFile.delete();
                 }
             }

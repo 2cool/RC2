@@ -4,6 +4,8 @@ import android.util.Log;
 
 import java.util.Calendar;
 
+
+
 public class Telemetry {
 
 	static public boolean maxTelemetry=false;
@@ -291,6 +293,53 @@ public class Telemetry {
 		double d = R * c;
 		return d;
 	}
+static int old_index=-1;
+	static int log_s=0;
+	static int block_cnt=0;
+
+
+
+
+
+
+
+
+
+
+	static final int  mask=63;
+	static byte [][]log_buffer=new byte[mask+1][1024];
+	static int readedI=0;
+	static int writedI=0;
+	static boolean logThread_f=true;
+	static boolean thread_started=false;
+static void startlogThread(){
+	if (thread_started==true)
+		return;
+	thread_started=true;
+	Thread thread = new Thread() {
+		@Override
+		public void run() {
+			while (logThread_f==true){
+				if (writedI<readedI){
+					int adr=writedI&mask;
+					int mes_len=log_buffer[adr][0]&255;
+					mes_len +=256*log_buffer[adr][1];
+					Disk.write2Log(log_buffer[adr],0,mes_len);
+					writedI++;
+				}else {
+					try {
+						Thread.sleep(5);
+					} catch (InterruptedException ex) {
+						Thread.currentThread().interrupt();
+					}
+				}
+			}
+
+		}
+	};
+	thread.start();
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 	static public void bufferReader_(byte buf[],int buf_len){
@@ -331,6 +380,7 @@ public class Telemetry {
 				autoLat=oldlat=lat;
 				autoLon=oldlon=lon;
 				Disk.saveLatLonAlt("/sdcard/RC/start_location.save",lat,lon,0);
+
 			}
 			if (motors_is_on!=MainActivity.motorsOnF())
 				motors_is_on=MainActivity.motorsOnF();
@@ -366,22 +416,6 @@ public class Telemetry {
 			speed_time=t;
 			speed+=(dDist/dt-speed)*0.05;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 		}
 		r_accuracy_hor_pos = buf[i++];
 		r_acuracy_ver_pos = buf[i++];
@@ -414,8 +448,29 @@ public class Telemetry {
 		heading=1.4173228346456692913385826771654*(float)buf[i++];
 
 		//тут читаем сообщения если они кому нужни так как у нас все данніе риходят и муд
-		if (buf_len-i>5)
-			readMessages(new String(buf,i,buf_len-i));
+		int mes_len=load_int16(buf,i);
+		i+=2;
+		if ( mes_len >0 ) {
+			readMessages(new String(buf, i, mes_len));
+		}
+		i+=mes_len;
+		mes_len=load_int16(buf,i);
+		i+=2;
+		block_cnt=0;
+		while (mes_len>0){
+			System.arraycopy(buf, i-2,log_buffer[readedI&mask], 0,  mes_len+2);
+			readedI++;
+
+			block_cnt++;
+			log_s+=mes_len;
+
+
+			i+=mes_len;
+			mes_len=load_int16(buf,i);
+			i+=2;
+		}
+		//if (block_cnt>1)
+		//Log.i("DISK","W... "+Integer.toString(log_s)+"  blocks  "+Integer.toString(block_cnt));
 
 		float z = (float) Math.sqrt( (1 - pitch * pitch*GRAD2RAD*GRAD2RAD ) * (1 - roll * roll * GRAD2RAD*GRAD2RAD) );
 		//ap_throttle=realThrottle*z;
